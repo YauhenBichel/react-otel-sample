@@ -9,13 +9,28 @@ import (
 
 	"github.com/embrace-io/react-otel-101/models"
 	"github.com/embrace-io/react-otel-101/otel"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/plugin/opentelemetry/tracing"
 )
+
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
+}
 
 func main() {
 	// Handle SIGINT (CTRL+C) gracefully.
@@ -32,7 +47,9 @@ func main() {
 		err = errors.Join(err, otelShutdown(context.Background()))
 	}()
 
-	db, err := gorm.Open(postgres.Open("host=db user=postgres password=postgres dbname=postgres port=5432 sslmode=disable TimeZone=UTC"))
+	db, err := gorm.Open(postgres.Open("postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"))
+	db.AutoMigrate(&models.Product{})
+
 	if err != nil {
 		panic(err)
 	}
@@ -43,7 +60,7 @@ func main() {
 
 	r := gin.Default()
 	r.Use(otelgin.Middleware("go-server"))
-	r.Use(cors.Default())
+	r.Use(CORSMiddleware())
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -77,5 +94,5 @@ func main() {
 		c.JSON(http.StatusOK, product)
 	})
 
-	r.Run()
+	r.Run(":8080")
 }

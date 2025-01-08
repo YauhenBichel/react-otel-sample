@@ -33,6 +33,7 @@ const Home = () => {
       try {
         const response = await fetch("http://localhost:8080/products");
         const data = await response.json();
+        console.log(data);
 
         setProducts(data);
       } catch (e) {
@@ -44,7 +45,7 @@ const Home = () => {
   return (
     <Page
       instrumentation={{ pageName: "Home" }}
-      isLoading={products.length === 0}
+      
     >
       <Container>
         <h1 className={styles.title}>

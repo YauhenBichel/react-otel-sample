@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   server:
     build:
@@ -9,9 +7,9 @@ services:
       - '8080:8080'
     networks:
       - backend
-    depends_on:
-      db:
-        condition: service_healthy
+    #depends_on:
+      #db:
+        #condition: service_healthy
     restart: on-failure
 
   nginx:
@@ -22,9 +20,9 @@ services:
       - backend
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/nginx.conf
-    depends_on:
-      grafana:
-        condition: service_healthy
+    #depends_on:
+      #grafana:
+        #scondition: service_healthy
     restart: always
 
   grafana:
